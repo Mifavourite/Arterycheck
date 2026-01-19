@@ -5,7 +5,8 @@ import {
   TrendingUp,
   AlertTriangle,
   CheckCircle,
-  Clock
+  Clock,
+  Activity
 } from 'lucide-react';
 
 interface AssessmentData {
@@ -15,8 +16,13 @@ interface AssessmentData {
   totalCholesterol: number;
   hdlCholesterol: number;
   ldlCholesterol?: number;
+  triglycerides?: number;
   height: number; // in cm
   weight: number; // in kg
+  restingHeartRate?: number; // bpm
+  bloodGlucose?: number; // mg/dL
+  waistCircumference?: number; // cm
+  oxygenSaturation?: number; // SpO2 %
   smoking: boolean;
   diabetes: boolean;
   familyHistory: boolean;
@@ -41,6 +47,10 @@ export default function Assessments() {
     hdlCholesterol: 0,
     height: 0,
     weight: 0,
+    restingHeartRate: 0,
+    bloodGlucose: 0,
+    waistCircumference: 0,
+    oxygenSaturation: 0,
     smoking: false,
     diabetes: false,
     familyHistory: false,
@@ -102,6 +112,25 @@ export default function Assessments() {
     if (bmi >= 30) score += 4; // Obese
     else if (bmi >= 25) score += 2; // Overweight
     
+    // Resting Heart Rate (elevated HR is a risk factor)
+    if (data.restingHeartRate && data.restingHeartRate > 100) score += 2;
+    else if (data.restingHeartRate && data.restingHeartRate > 80) score += 1;
+    
+    // Blood Glucose (diabetes indicator)
+    if (data.bloodGlucose && data.bloodGlucose >= 126) score += 3; // Diabetic range
+    else if (data.bloodGlucose && data.bloodGlucose >= 100) score += 1; // Pre-diabetic
+    
+    // Waist Circumference (central obesity indicator)
+    if (data.waistCircumference) {
+      const isMale = true; // Could be added to form
+      const threshold = isMale ? 102 : 88; // cm
+      if (data.waistCircumference > threshold) score += 2;
+    }
+    
+    // Triglycerides
+    if (data.triglycerides && data.triglycerides >= 200) score += 2;
+    else if (data.triglycerides && data.triglycerides >= 150) score += 1;
+    
     // Risk factors
     if (data.smoking) score += 4;
     if (data.diabetes) score += 5;
@@ -149,6 +178,33 @@ export default function Assessments() {
     if (data.exercise === 'none' || data.exercise === 'light') {
       recommendations.push('Increase physical activity to 30-45 minutes daily');
     }
+    
+    // Resting Heart Rate recommendations
+    if (data.restingHeartRate && data.restingHeartRate > 100) {
+      recommendations.push('Elevated resting heart rate detected - consult with healthcare provider');
+    } else if (data.restingHeartRate && data.restingHeartRate > 80) {
+      recommendations.push('Consider cardiovascular fitness training to lower resting heart rate');
+    }
+    
+    // Blood Glucose recommendations
+    if (data.bloodGlucose && data.bloodGlucose >= 126) {
+      recommendations.push('Blood glucose in diabetic range - immediate medical consultation needed');
+    } else if (data.bloodGlucose && data.bloodGlucose >= 100) {
+      recommendations.push('Pre-diabetic range detected - focus on diet and exercise to prevent progression');
+    }
+    
+    // Waist Circumference recommendations
+    if (data.waistCircumference && data.waistCircumference > 102) {
+      recommendations.push('Elevated waist circumference indicates central obesity - prioritize weight loss');
+    }
+    
+    // Triglycerides recommendations
+    if (data.triglycerides && data.triglycerides >= 200) {
+      recommendations.push('High triglycerides detected - reduce refined carbs and sugars, increase omega-3 intake');
+    } else if (data.triglycerides && data.triglycerides >= 150) {
+      recommendations.push('Borderline high triglycerides - monitor diet and consider lifestyle changes');
+    }
+    
     if (riskLevel === 'high') {
       recommendations.push('Consult with a cardiologist for comprehensive evaluation');
       recommendations.push('Consider medication therapy (statins, antihypertensives)');
@@ -350,6 +406,112 @@ export default function Assessments() {
                   </div>
                 </div>
 
+                {/* Additional Vital Signs Section */}
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-sky-600" />
+                    Additional Vital Signs (Optional)
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-gray-700 font-semibold mb-2">
+                        Resting Heart Rate (bpm)
+                      </label>
+                      <input
+                        type="number"
+                        min="40"
+                        max="120"
+                        value={formData.restingHeartRate || ''}
+                        onChange={(e) => setFormData({ ...formData, restingHeartRate: parseInt(e.target.value) || 0 })}
+                        className="w-full border-2 border-gray-200 p-3 rounded-xl focus:border-sky-400 focus:outline-none transition"
+                        placeholder="e.g., 72"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Normal: 60-100 bpm</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-700 font-semibold mb-2">
+                        Blood Glucose (mg/dL)
+                      </label>
+                      <input
+                        type="number"
+                        min="70"
+                        max="300"
+                        value={formData.bloodGlucose || ''}
+                        onChange={(e) => setFormData({ ...formData, bloodGlucose: parseInt(e.target.value) || 0 })}
+                        className="w-full border-2 border-gray-200 p-3 rounded-xl focus:border-sky-400 focus:outline-none transition"
+                        placeholder="e.g., 95"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Normal: &lt;100 mg/dL (fasting)</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-700 font-semibold mb-2">
+                        Waist Circumference (cm)
+                      </label>
+                      <input
+                        type="number"
+                        min="50"
+                        max="200"
+                        step="0.1"
+                        value={formData.waistCircumference || ''}
+                        onChange={(e) => setFormData({ ...formData, waistCircumference: parseFloat(e.target.value) || 0 })}
+                        className="w-full border-2 border-gray-200 p-3 rounded-xl focus:border-sky-400 focus:outline-none transition"
+                        placeholder="e.g., 85"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Healthy: &lt;102 cm (men), &lt;88 cm (women)</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-700 font-semibold mb-2">
+                        Triglycerides (mg/dL)
+                      </label>
+                      <input
+                        type="number"
+                        min="50"
+                        max="500"
+                        value={formData.triglycerides || ''}
+                        onChange={(e) => setFormData({ ...formData, triglycerides: parseInt(e.target.value) || 0 })}
+                        className="w-full border-2 border-gray-200 p-3 rounded-xl focus:border-sky-400 focus:outline-none transition"
+                        placeholder="e.g., 150"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Normal: &lt;150 mg/dL</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-700 font-semibold mb-2">
+                        Oxygen Saturation (SpO2 %)
+                      </label>
+                      <input
+                        type="number"
+                        min="85"
+                        max="100"
+                        value={formData.oxygenSaturation || ''}
+                        onChange={(e) => setFormData({ ...formData, oxygenSaturation: parseInt(e.target.value) || 0 })}
+                        className="w-full border-2 border-gray-200 p-3 rounded-xl focus:border-sky-400 focus:outline-none transition"
+                        placeholder="e.g., 98"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Normal: 95-100%</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-700 font-semibold mb-2">
+                        LDL Cholesterol (mg/dL)
+                      </label>
+                      <input
+                        type="number"
+                        min="50"
+                        max="300"
+                        value={formData.ldlCholesterol || ''}
+                        onChange={(e) => setFormData({ ...formData, ldlCholesterol: parseInt(e.target.value) || 0 })}
+                        className="w-full border-2 border-gray-200 p-3 rounded-xl focus:border-sky-400 focus:outline-none transition"
+                        placeholder="e.g., 120"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Optimal: &lt;100 mg/dL</p>
+                    </div>
+                  </div>
+                </div>
+
                 {/* BMI Display */}
                 {formData.height > 0 && formData.weight > 0 && (
                   <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-4 border border-indigo-200">
@@ -451,6 +613,107 @@ export default function Assessments() {
                       <p>Height: {result.data.height} cm</p>
                       <p>Weight: {result.data.weight} kg</p>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Vital Signs Summary */}
+              {(result.data.restingHeartRate || result.data.bloodGlucose || result.data.waistCircumference || 
+                result.data.triglycerides || result.data.oxygenSaturation || result.data.ldlCholesterol) && (
+                <div className="mb-6 p-6 bg-gradient-to-br from-sky-50 to-teal-50 rounded-xl border border-sky-200">
+                  <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-sky-600" />
+                    Vital Signs Summary
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {result.data.restingHeartRate > 0 && (
+                      <div className="bg-white/80 rounded-lg p-3">
+                        <p className="text-xs text-gray-600 mb-1">Resting HR</p>
+                        <p className="text-xl font-bold text-gray-800">
+                          {result.data.restingHeartRate} <span className="text-sm text-gray-500">bpm</span>
+                        </p>
+                        <p className={`text-xs mt-1 ${
+                          result.data.restingHeartRate > 100 ? 'text-red-600' :
+                          result.data.restingHeartRate > 80 ? 'text-yellow-600' : 'text-green-600'
+                        }`}>
+                          {result.data.restingHeartRate > 100 ? 'Elevated' :
+                           result.data.restingHeartRate > 80 ? 'Slightly High' : 'Normal'}
+                        </p>
+                      </div>
+                    )}
+                    {result.data.bloodGlucose > 0 && (
+                      <div className="bg-white/80 rounded-lg p-3">
+                        <p className="text-xs text-gray-600 mb-1">Blood Glucose</p>
+                        <p className="text-xl font-bold text-gray-800">
+                          {result.data.bloodGlucose} <span className="text-sm text-gray-500">mg/dL</span>
+                        </p>
+                        <p className={`text-xs mt-1 ${
+                          result.data.bloodGlucose >= 126 ? 'text-red-600' :
+                          result.data.bloodGlucose >= 100 ? 'text-yellow-600' : 'text-green-600'
+                        }`}>
+                          {result.data.bloodGlucose >= 126 ? 'Diabetic' :
+                           result.data.bloodGlucose >= 100 ? 'Pre-diabetic' : 'Normal'}
+                        </p>
+                      </div>
+                    )}
+                    {result.data.waistCircumference > 0 && (
+                      <div className="bg-white/80 rounded-lg p-3">
+                        <p className="text-xs text-gray-600 mb-1">Waist Circ.</p>
+                        <p className="text-xl font-bold text-gray-800">
+                          {result.data.waistCircumference} <span className="text-sm text-gray-500">cm</span>
+                        </p>
+                        <p className={`text-xs mt-1 ${
+                          result.data.waistCircumference > 102 ? 'text-red-600' : 'text-green-600'
+                        }`}>
+                          {result.data.waistCircumference > 102 ? 'Elevated' : 'Normal'}
+                        </p>
+                      </div>
+                    )}
+                    {result.data.triglycerides > 0 && (
+                      <div className="bg-white/80 rounded-lg p-3">
+                        <p className="text-xs text-gray-600 mb-1">Triglycerides</p>
+                        <p className="text-xl font-bold text-gray-800">
+                          {result.data.triglycerides} <span className="text-sm text-gray-500">mg/dL</span>
+                        </p>
+                        <p className={`text-xs mt-1 ${
+                          result.data.triglycerides >= 200 ? 'text-red-600' :
+                          result.data.triglycerides >= 150 ? 'text-yellow-600' : 'text-green-600'
+                        }`}>
+                          {result.data.triglycerides >= 200 ? 'High' :
+                           result.data.triglycerides >= 150 ? 'Borderline' : 'Normal'}
+                        </p>
+                      </div>
+                    )}
+                    {result.data.oxygenSaturation > 0 && (
+                      <div className="bg-white/80 rounded-lg p-3">
+                        <p className="text-xs text-gray-600 mb-1">SpO2</p>
+                        <p className="text-xl font-bold text-gray-800">
+                          {result.data.oxygenSaturation} <span className="text-sm text-gray-500">%</span>
+                        </p>
+                        <p className={`text-xs mt-1 ${
+                          result.data.oxygenSaturation < 95 ? 'text-red-600' : 'text-green-600'
+                        }`}>
+                          {result.data.oxygenSaturation < 95 ? 'Low' : 'Normal'}
+                        </p>
+                      </div>
+                    )}
+                    {result.data.ldlCholesterol > 0 && (
+                      <div className="bg-white/80 rounded-lg p-3">
+                        <p className="text-xs text-gray-600 mb-1">LDL Cholesterol</p>
+                        <p className="text-xl font-bold text-gray-800">
+                          {result.data.ldlCholesterol} <span className="text-sm text-gray-500">mg/dL</span>
+                        </p>
+                        <p className={`text-xs mt-1 ${
+                          result.data.ldlCholesterol >= 160 ? 'text-red-600' :
+                          result.data.ldlCholesterol >= 130 ? 'text-yellow-600' :
+                          result.data.ldlCholesterol >= 100 ? 'text-orange-600' : 'text-green-600'
+                        }`}>
+                          {result.data.ldlCholesterol >= 160 ? 'High' :
+                           result.data.ldlCholesterol >= 130 ? 'Borderline High' :
+                           result.data.ldlCholesterol >= 100 ? 'Near Optimal' : 'Optimal'}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
