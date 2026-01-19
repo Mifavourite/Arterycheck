@@ -96,7 +96,7 @@ export default function Layout() {
       </aside>
 
       {/* Main Content */}
-      <main className={`transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-20'}`}>
+      <main className={`transition-all duration-300 min-h-screen w-full ${sidebarOpen ? 'ml-64' : 'ml-20'}`}>
         {/* Mobile Menu Button */}
         {!sidebarOpen && (
           <button
@@ -107,7 +107,7 @@ export default function Layout() {
           </button>
         )}
 
-        <div className="p-6">
+        <div className="p-6 w-full">
           <Outlet />
         </div>
       </main>

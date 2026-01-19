@@ -137,33 +137,35 @@ export default function Dashboard() {
             <Activity className="w-5 h-5 text-sky-600" />
             Health Trends (7 Days)
           </h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <AreaChart data={healthTrendData}>
-              <defs>
-                <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="date" stroke="#6b7280" fontSize={12} />
-              <YAxis stroke="#6b7280" fontSize={12} />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'white', 
-                  border: '1px solid #e5e7eb', 
-                  borderRadius: '8px' 
-                }}
-              />
-              <Area 
-                type="monotone" 
-                dataKey="value" 
-                stroke="#0ea5e9" 
-                strokeWidth={2}
-                fill="url(#colorValue)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          <div className="w-full" style={{ height: '250px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={healthTrendData}>
+                <defs>
+                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="date" stroke="#6b7280" fontSize={12} />
+                <YAxis stroke="#6b7280" fontSize={12} />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'white', 
+                    border: '1px solid #e5e7eb', 
+                    borderRadius: '8px' 
+                  }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="value" 
+                  stroke="#0ea5e9" 
+                  strokeWidth={2}
+                  fill="url(#colorValue)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         {/* Risk Distribution */}
@@ -172,25 +174,27 @@ export default function Dashboard() {
             <Heart className="w-5 h-5 text-rose-600" />
             Risk Distribution
           </h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={riskDistribution}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {riskDistribution.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="w-full" style={{ height: '250px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={riskDistribution}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {riskDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 

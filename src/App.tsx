@@ -10,7 +10,7 @@ import PatientDetail from './pages/PatientDetail';
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/Arterycheck">
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
