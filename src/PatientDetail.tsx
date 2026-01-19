@@ -24,6 +24,9 @@ interface Patient {
   nextAppointment?: string;
   medicalHistory?: string;
   medications?: string[];
+  height?: number; // in cm
+  weight?: number; // in kg
+  bmi?: number;
   vitalSigns?: {
     systolicBP: number;
     diastolicBP: number;
@@ -121,7 +124,7 @@ export default function PatientDetail() {
       </div>
 
       {/* Patient Info Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-gray-200">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg">
@@ -130,6 +133,29 @@ export default function PatientDetail() {
             <div>
               <p className="text-sm text-gray-600">Age</p>
               <p className="text-2xl font-bold text-gray-800">{patient.age}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-gray-200">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-lg">
+              <Activity className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">BMI</p>
+              {patient.bmi ? (
+                <>
+                  <p className="text-2xl font-bold text-gray-800">{patient.bmi}</p>
+                  <p className="text-xs text-gray-500">
+                    {patient.bmi < 18.5 ? 'Underweight' :
+                     patient.bmi < 25 ? 'Normal' :
+                     patient.bmi < 30 ? 'Overweight' : 'Obese'}
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm text-gray-500">Not recorded</p>
+              )}
             </div>
           </div>
         </div>
