@@ -15,6 +15,8 @@ interface AssessmentData {
   totalCholesterol: number;
   hdlCholesterol: number;
   ldlCholesterol?: number;
+  height: number; // in cm
+  weight: number; // in kg
   smoking: boolean;
   diabetes: boolean;
   familyHistory: boolean;
@@ -37,6 +39,8 @@ export default function Assessments() {
     diastolicBP: 0,
     totalCholesterol: 0,
     hdlCholesterol: 0,
+    height: 0,
+    weight: 0,
     smoking: false,
     diabetes: false,
     familyHistory: false,
@@ -55,6 +59,20 @@ export default function Assessments() {
     if (stored) {
       setHistory(JSON.parse(stored));
     }
+  };
+
+  const calculateBMI = (height: number, weight: number): number => {
+    if (height <= 0 || weight <= 0) return 0;
+    // BMI = weight (kg) / height (m)²
+    const heightInMeters = height / 100;
+    return Number((weight / (heightInMeters * heightInMeters)).toFixed(1));
+  };
+
+  const getBMICategory = (bmi: number): { category: string; color: string } => {
+    if (bmi < 18.5) return { category: 'Underweight', color: 'text-blue-600' };
+    if (bmi < 25) return { category: 'Normal', color: 'text-green-600' };
+    if (bmi < 30) return { category: 'Overweight', color: 'text-yellow-600' };
+    return { category: 'Obese', color: 'text-red-600' };
   };
 
   const calculateASCVD = (data: AssessmentData): number => {
@@ -79,6 +97,11 @@ export default function Assessments() {
     else if (ratio >= 5) score += 4;
     else if (ratio >= 4) score += 2;
     
+    // BMI factor
+    const bmi = calculateBMI(data.height, data.weight);
+    if (bmi >= 30) score += 4; // Obese
+    else if (bmi >= 25) score += 2; // Overweight
+    
     // Risk factors
     if (data.smoking) score += 4;
     if (data.diabetes) score += 5;
@@ -99,6 +122,17 @@ export default function Assessments() {
 
   const getRecommendations = (data: AssessmentData, riskLevel: string): string[] => {
     const recommendations: string[] = [];
+    const bmi = calculateBMI(data.height, data.weight);
+    const bmiCategory = getBMICategory(bmi);
+    
+    // BMI recommendations
+    if (bmi >= 30) {
+      recommendations.push('Weight management is critical - aim for 5-10% weight loss to reduce cardiovascular risk');
+    } else if (bmi >= 25) {
+      recommendations.push('Consider weight loss through diet and exercise to achieve BMI < 25');
+    } else if (bmi < 18.5) {
+      recommendations.push('Maintain healthy weight through balanced nutrition');
+    }
     
     if (data.systolicBP >= 130) {
       recommendations.push('Consider lifestyle changes to lower blood pressure (reduce sodium, increase exercise)');
@@ -270,6 +304,38 @@ export default function Assessments() {
                   </div>
 
                   <div>
+                    <label className="block text-gray-700 font-semibold mb-2">Height (cm)</label>
+                    <input
+                      type="number"
+                      required
+                      min="100"
+                      max="250"
+                      step="0.1"
+                      value={formData.height || ''}
+                      onChange={(e) => setFormData({ ...formData, height: parseFloat(e.target.value) || 0 })}
+                      className="w-full border-2 border-gray-200 p-3 rounded-xl focus:border-sky-400 focus:outline-none transition"
+                      placeholder="e.g., 175"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Enter height in centimeters</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-700 font-semibold mb-2">Weight (kg)</label>
+                    <input
+                      type="number"
+                      required
+                      min="30"
+                      max="300"
+                      step="0.1"
+                      value={formData.weight || ''}
+                      onChange={(e) => setFormData({ ...formData, weight: parseFloat(e.target.value) || 0 })}
+                      className="w-full border-2 border-gray-200 p-3 rounded-xl focus:border-sky-400 focus:outline-none transition"
+                      placeholder="e.g., 75"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Enter weight in kilograms</p>
+                  </div>
+
+                  <div>
                     <label className="block text-gray-700 font-semibold mb-2">Exercise Level</label>
                     <select
                       value={formData.exercise}
@@ -283,6 +349,28 @@ export default function Assessments() {
                     </select>
                   </div>
                 </div>
+
+                {/* BMI Display */}
+                {formData.height > 0 && formData.weight > 0 && (
+                  <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-4 border border-indigo-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">Body Mass Index (BMI)</p>
+                        <p className="text-3xl font-bold text-gray-800">
+                          {calculateBMI(formData.height, formData.weight)}
+                        </p>
+                        <p className={`text-sm font-semibold mt-1 ${getBMICategory(calculateBMI(formData.height, formData.weight)).color}`}>
+                          {getBMICategory(calculateBMI(formData.height, formData.weight)).category}
+                        </p>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        <p>Normal: 18.5 - 24.9</p>
+                        <p>Overweight: 25 - 29.9</p>
+                        <p>Obese: ≥ 30</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-4">
                   <label className="flex items-center gap-3 cursor-pointer">
@@ -343,6 +431,29 @@ export default function Assessments() {
                 </div>
                 <p className="text-gray-600">10-year cardiovascular risk score</p>
               </div>
+
+              {/* BMI Display in Results */}
+              {result.data.height > 0 && result.data.weight > 0 && (
+                <div className="mb-6 p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Body Mass Index (BMI)</p>
+                      <div className="flex items-baseline gap-3">
+                        <p className="text-3xl font-bold text-gray-800">
+                          {calculateBMI(result.data.height, result.data.weight)}
+                        </p>
+                        <p className={`text-lg font-semibold ${getBMICategory(calculateBMI(result.data.height, result.data.weight)).color}`}>
+                          {getBMICategory(calculateBMI(result.data.height, result.data.weight)).category}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right text-xs text-gray-500">
+                      <p>Height: {result.data.height} cm</p>
+                      <p>Weight: {result.data.weight} kg</p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-4">
                 <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
