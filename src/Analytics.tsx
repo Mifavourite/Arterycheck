@@ -67,6 +67,31 @@ export default function Analytics() {
     { age: '76+', avgRisk: 72, low: 65, high: 79 },
   ];
 
+  // Calculate BMI distribution from assessments
+  const calculateBMI = (height: number, weight: number): number => {
+    if (!height || !weight || height <= 0 || weight <= 0) return 0;
+    const heightInMeters = height / 100;
+    return Number((weight / (heightInMeters * heightInMeters)).toFixed(1));
+  };
+
+  const bmiDistribution = assessments.reduce((acc, assessment) => {
+    if (assessment.data?.height && assessment.data?.weight) {
+      const bmi = calculateBMI(assessment.data.height, assessment.data.weight);
+      if (bmi < 18.5) acc.underweight++;
+      else if (bmi < 25) acc.normal++;
+      else if (bmi < 30) acc.overweight++;
+      else acc.obese++;
+    }
+    return acc;
+  }, { underweight: 0, normal: 0, overweight: 0, obese: 0 });
+
+  const bmiChartData = [
+    { name: 'Underweight', value: bmiDistribution.underweight, color: '#3b82f6' },
+    { name: 'Normal', value: bmiDistribution.normal, color: '#10b981' },
+    { name: 'Overweight', value: bmiDistribution.overweight, color: '#f59e0b' },
+    { name: 'Obese', value: bmiDistribution.obese, color: '#ef4444' },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -174,6 +199,58 @@ export default function Analytics() {
               <Tooltip />
             </PieChart>
           </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* BMI Distribution */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-gray-200">
+          <h2 className="text-xl font-bold text-gray-800 mb-6">BMI Distribution</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={bmiChartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="name" stroke="#6b7280" fontSize={12} />
+              <YAxis stroke="#6b7280" fontSize={12} />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'white', 
+                  border: '1px solid #e5e7eb', 
+                  borderRadius: '8px' 
+                }}
+              />
+              <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                {bmiChartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-gray-200">
+          <h2 className="text-xl font-bold text-gray-800 mb-6">BMI Categories</h2>
+          <div className="space-y-4">
+            {bmiChartData.map((category) => (
+              <div key={category.name} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div 
+                    className="w-4 h-4 rounded-full" 
+                    style={{ backgroundColor: category.color }}
+                  ></div>
+                  <span className="font-semibold text-gray-800">{category.name}</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-2xl font-bold text-gray-800">{category.value}</span>
+                  <span className="text-sm text-gray-500">patients</span>
+                </div>
+              </div>
+            ))}
+            <div className="mt-4 p-4 bg-indigo-50 rounded-xl border border-indigo-200">
+              <p className="text-sm text-gray-700">
+                <strong>BMI Guidelines:</strong> Normal (18.5-24.9), Overweight (25-29.9), Obese (≥30)
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
